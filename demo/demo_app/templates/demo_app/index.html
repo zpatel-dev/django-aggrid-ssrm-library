@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>django-aggrid-ssrm demo</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-enterprise@32/styles/ag-grid.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-enterprise@32/styles/ag-theme-quartz.css">
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-enterprise@32/dist/ag-grid-enterprise.min.js"></script>
+
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #f6f8fa; }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  .subtitle { color: #555; font-size: 13px; margin-bottom: 16px; }
+  .warn { background: #fff7e6; border-left: 4px solid #f0a020; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; border-radius: 2px; }
+  .warn code { background: #f0e0bf; padding: 1px 4px; border-radius: 2px; }
+  .toolbar { margin-bottom: 10px; display: flex; gap: 8px; align-items: center; }
+  .toolbar input { padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; width: 280px; }
+  #myGrid { height: calc(100vh - 220px); width: 100%; }
+</style>
+</head>
+<body>
+
+<h1>django-aggrid-ssrm — demo</h1>
+<div class="subtitle">Sales records served via AG Grid Server-Side Row Model. Try filtering, sorting, and dragging a column into the Row Groups panel.</div>
+
+<div class="warn">
+  <strong>License notice:</strong> AG Grid SSRM is an <em>AG Grid Enterprise</em> feature.
+  Without a license key the grid runs in trial mode and shows a watermark.
+  Set <code>AG_GRID_LICENSE_KEY</code> in your env to remove it.
+  This Django library itself is MIT-licensed and independent of AG Grid Ltd.
+</div>
+
+<div class="toolbar">
+  <input id="searchBox" type="text" placeholder="Free-text search (product, sales rep, region)...">
+</div>
+
+<div id="myGrid" class="ag-theme-quartz"></div>
+
+<script>
+(function () {
+    const licenseKey = "{{ ag_grid_license_key|escapejs }}";
+    if (licenseKey && window.agGrid && agGrid.LicenseManager) {
+        agGrid.LicenseManager.setLicenseKey(licenseKey);
+    }
+
+    function getCsrfToken() {
+        const m = document.cookie.match(/csrftoken=([^;]+)/);
+        return m ? m[1] : '';
+    }
+
+    let currentSearch = '';
+
+    const datasource = {
+        getRows: function (params) {
+            const body = Object.assign({}, params.request, { search: currentSearch });
+            fetch('/ssrm/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: JSON.stringify(body),
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                params.success({
+                    rowData: data.rowData || [],
+                    rowCount: typeof data.rowCount === 'number' ? data.rowCount : undefined,
+                });
+            })
+            .catch(function (err) { console.error(err); params.fail(); });
+        }
+    };
+
+    const columnDefs = {{ column_defs_json|safe }};
+    columnDefs.forEach(function (cd) {
+        if (cd.filter === 'agSetColumnFilter') {
+            cd.filterParams = {
+                values: function (p) {
+                    fetch('/column-values/?column=' + encodeURIComponent(cd.field))
+                        .then(function (r) { return r.json(); })
+                        .then(function (j) { p.success(j.values || []); });
+                }
+            };
+        }
+    });
+
+    const gridOptions = {
+        columnDefs: columnDefs,
+        defaultColDef: {
+            sortable: true,
+            filter: true,
+            resizable: true,
+            floatingFilter: true,
+        },
+        rowModelType: 'serverSide',
+        cacheBlockSize: 100,
+        serverSideDatasource: datasource,
+        rowGroupPanelShow: 'always',
+        sideBar: { toolPanels: ['columns', 'filters'] },
+        animateRows: true,
+    };
+
+    const gridDiv = document.getElementById('myGrid');
+    const api = agGrid.createGrid(gridDiv, gridOptions);
+
+    let searchTimer;
+    document.getElementById('searchBox').addEventListener('input', function (e) {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(function () {
+            currentSearch = e.target.value || '';
+            api.refreshServerSide({ purge: true });
+        }, 250);
+    });
+})();
+</script>
+
+</body>
+</html>

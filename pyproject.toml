@@ -1,0 +1,88 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "django-aggrid-ssrm"
+version = "0.1.0"
+description = "Django backend adapter for AG Grid's Server-Side Row Model (SSRM)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [
+    { name = "ZPatel" },
+]
+keywords = ["django", "ag-grid", "aggrid", "ssrm", "server-side-row-model", "datagrid"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "Django>=4.2,<6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/zpatel-dev/django-aggrid-ssrm-library"
+Repository = "https://github.com/zpatel-dev/django-aggrid-ssrm-library"
+Issues = "https://github.com/zpatel-dev/django-aggrid-ssrm-library/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-django>=4.8",
+    "ruff>=0.6",
+    "build>=1.2",
+]
+demo = [
+    "Faker>=25.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aggrid_ssrm"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/aggrid_ssrm",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.settings"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+pythonpath = ["."]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+ignore = ["E501"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0",
+    "pytest-django>=4.8",
+    "ruff>=0.6",
+    "build>=1.2",
+    "Faker>=25.0",
+]

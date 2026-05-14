@@ -1,0 +1,102 @@
+{% comment %}
+Reusable AG Grid SSRM partial.  Include with:
+
+    {% include "aggrid_ssrm/_grid.html" with
+        grid_id="my-grid"
+        endpoint_url="/sales/ssrm/"
+        column_values_url="/sales/column-values/"
+        column_defs_json=column_defs_json
+        license_key=ag_grid_license_key %}
+
+Required template context vars:
+  - grid_id            unique DOM id (string)
+  - endpoint_url       POST endpoint for SSRM requests
+  - column_defs_json   JSON string of AG Grid columnDefs (mark |safe in caller)
+
+Optional:
+  - column_values_url  GET endpoint for set-filter distinct values
+  - license_key        AG Grid Enterprise license key (omit for trial/watermark)
+  - height             CSS height (default "600px")
+  - cache_block_size   rows per block (default 100)
+  - csrf_header_name   CSRF header name (default "X-CSRFToken")
+
+This partial loads AG Grid Enterprise from the jsDelivr CDN.  AG Grid SSRM
+requires a valid AG Grid Enterprise license at runtime.
+{% endcomment %}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-enterprise@32/styles/ag-grid.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-enterprise@32/styles/ag-theme-quartz.css">
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-enterprise@32/dist/ag-grid-enterprise.min.js"></script>
+
+<div id="{{ grid_id }}" class="ag-theme-quartz" style="height: {{ height|default:'600px' }}; width: 100%;"></div>
+
+<script>
+(function () {
+    {% if license_key %}
+    if (window.agGrid && agGrid.LicenseManager) {
+        agGrid.LicenseManager.setLicenseKey("{{ license_key|escapejs }}");
+    }
+    {% endif %}
+
+    const endpoint = "{{ endpoint_url|escapejs }}";
+    const columnValuesUrl = "{{ column_values_url|default:''|escapejs }}";
+
+    function getCsrfToken() {
+        const m = document.cookie.match(/csrftoken=([^;]+)/);
+        return m ? m[1] : '';
+    }
+
+    const datasource = {
+        getRows: function (params) {
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    '{{ csrf_header_name|default:"X-CSRFToken" }}': getCsrfToken(),
+                },
+                body: JSON.stringify(params.request),
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                params.success({
+                    rowData: data.rowData || [],
+                    rowCount: typeof data.rowCount === 'number' ? data.rowCount : undefined,
+                });
+            })
+            .catch(function (err) {
+                console.error('SSRM fetch failed', err);
+                params.fail();
+            });
+        }
+    };
+
+    const columnDefs = {{ column_defs_json|safe }};
+    if (columnValuesUrl) {
+        columnDefs.forEach(function (cd) {
+            if (cd.filter === 'agSetColumnFilter' && !cd.filterParams) {
+                cd.filterParams = {
+                    values: function (p) {
+                        fetch(columnValuesUrl + '?column=' + encodeURIComponent(cd.field))
+                            .then(function (r) { return r.json(); })
+                            .then(function (j) { p.success(j.values || []); });
+                    }
+                };
+            }
+        });
+    }
+
+    const gridOptions = {
+        columnDefs: columnDefs,
+        defaultColDef: { sortable: true, filter: true, resizable: true, floatingFilter: true },
+        rowModelType: 'serverSide',
+        cacheBlockSize: {{ cache_block_size|default:100 }},
+        serverSideDatasource: datasource,
+        rowGroupPanelShow: 'always',
+        sideBar: { toolPanels: ['columns', 'filters'] },
+        animateRows: true,
+    };
+
+    const gridDiv = document.getElementById("{{ grid_id|escapejs }}");
+    agGrid.createGrid(gridDiv, gridOptions);
+})();
+</script>
