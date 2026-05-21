@@ -98,26 +98,26 @@ def _create_doc_custom_data(name, payload, status='COMPLETED'):
 class JsonArraySetFilterTest(TestCase):
     def setUp(self):
         self.doc1 = _create_doc('doc1.pdf', [
-            {'COUNTY': 'MCINTOSH', 'ACRES': 100, 'TRACT': 'T1'},
-            {'COUNTY': 'TULSA', 'ACRES': 200, 'TRACT': 'T2'},
+            {'COUNTY': 'ALPHA', 'ACRES': 100, 'TRACT': 'T1'},
+            {'COUNTY': 'BETA', 'ACRES': 200, 'TRACT': 'T2'},
         ])
         self.doc2 = _create_doc('doc2.pdf', [
-            {'COUNTY': 'TULSA', 'ACRES': 50, 'TRACT': 'T3'},
+            {'COUNTY': 'BETA', 'ACRES': 50, 'TRACT': 'T3'},
         ])
         self.doc3 = _create_doc('doc3.pdf', [
-            {'COUNTY': 'CREEK', 'ACRES': 300, 'TRACT': 'T4'},
+            {'COUNTY': 'GAMMA', 'ACRES': 300, 'TRACT': 'T4'},
         ])
         self.qs = Item.objects.all()
         self.fields = _json_fields()
 
     def test_set_single_value(self):
-        fm = {'COUNTY': {'filterType': 'set', 'values': ['MCINTOSH']}}
+        fm = {'COUNTY': {'filterType': 'set', 'values': ['ALPHA']}}
         result = apply_filters(self.qs, fm, self.fields)
         self.assertEqual(result.count(), 1)
         self.assertEqual(result.first().name, 'doc1.pdf')
 
     def test_set_multiple_values(self):
-        fm = {'COUNTY': {'filterType': 'set', 'values': ['MCINTOSH', 'TULSA']}}
+        fm = {'COUNTY': {'filterType': 'set', 'values': ['ALPHA', 'BETA']}}
         result = apply_filters(self.qs, fm, self.fields)
         self.assertEqual(result.count(), 2)
 
@@ -139,51 +139,51 @@ class JsonArraySetFilterTest(TestCase):
 class JsonArrayTextFilterTest(TestCase):
     def setUp(self):
         self.doc1 = _create_doc('doc1.pdf', [
-            {'COUNTY': 'MCINTOSH', 'ACRES': 100, 'TRACT': 'T1'},
+            {'COUNTY': 'ALPHA', 'ACRES': 100, 'TRACT': 'T1'},
         ])
         self.doc2 = _create_doc('doc2.pdf', [
-            {'COUNTY': 'TULSA', 'ACRES': 200, 'TRACT': 'T2'},
+            {'COUNTY': 'BETA', 'ACRES': 200, 'TRACT': 'T2'},
         ])
         self.doc3 = _create_doc('doc3.pdf', [
-            {'COUNTY': 'MCCURTAIN', 'ACRES': 150, 'TRACT': 'T3'},
+            {'COUNTY': 'AURORA', 'ACRES': 150, 'TRACT': 'T3'},
         ])
         self.qs = Item.objects.all()
         self.fields = _json_fields()
 
     def test_contains(self):
-        fm = {'COUNTY': {'filterType': 'text', 'type': 'contains', 'filter': 'MCIN'}}
+        fm = {'COUNTY': {'filterType': 'text', 'type': 'contains', 'filter': 'LPH'}}
         result = apply_filters(self.qs, fm, self.fields)
         self.assertEqual(result.count(), 1)
         self.assertEqual(result.first().name, 'doc1.pdf')
 
     def test_equals(self):
-        fm = {'COUNTY': {'filterType': 'text', 'type': 'equals', 'filter': 'MCINTOSH'}}
+        fm = {'COUNTY': {'filterType': 'text', 'type': 'equals', 'filter': 'ALPHA'}}
         result = apply_filters(self.qs, fm, self.fields)
         self.assertEqual(result.count(), 1)
         self.assertEqual(result.first().name, 'doc1.pdf')
 
     def test_starts_with(self):
-        fm = {'COUNTY': {'filterType': 'text', 'type': 'startsWith', 'filter': 'MC'}}
+        fm = {'COUNTY': {'filterType': 'text', 'type': 'startsWith', 'filter': 'A'}}
         result = apply_filters(self.qs, fm, self.fields)
-        # MCINTOSH and MCCURTAIN
+        # ALPHA and AURORA
         self.assertEqual(result.count(), 2)
 
     def test_not_contains(self):
-        fm = {'COUNTY': {'filterType': 'text', 'type': 'notContains', 'filter': 'TULSA'}}
+        fm = {'COUNTY': {'filterType': 'text', 'type': 'notContains', 'filter': 'BETA'}}
         result = apply_filters(self.qs, fm, self.fields)
         # doc1 and doc3
         self.assertEqual(result.count(), 2)
 
     def test_ends_with(self):
-        fm = {'COUNTY': {'filterType': 'text', 'type': 'endsWith', 'filter': 'TOSH'}}
+        fm = {'COUNTY': {'filterType': 'text', 'type': 'endsWith', 'filter': 'PHA'}}
         result = apply_filters(self.qs, fm, self.fields)
         self.assertEqual(result.count(), 1)
         self.assertEqual(result.first().name, 'doc1.pdf')
 
     def test_not_equal(self):
-        fm = {'COUNTY': {'filterType': 'text', 'type': 'notEqual', 'filter': 'TULSA'}}
+        fm = {'COUNTY': {'filterType': 'text', 'type': 'notEqual', 'filter': 'BETA'}}
         result = apply_filters(self.qs, fm, self.fields)
-        # doc1 (MCINTOSH) and doc3 (MCCURTAIN) have items != TULSA
+        # doc1 (ALPHA) and doc3 (AURORA) have items != BETA
         self.assertEqual(result.count(), 2)
 
     def test_text_no_match(self):
@@ -199,13 +199,13 @@ class JsonArrayTextFilterTest(TestCase):
 class JsonArrayNumberFilterTest(TestCase):
     def setUp(self):
         self.doc1 = _create_doc('doc1.pdf', [
-            {'COUNTY': 'MCINTOSH', 'ACRES': 100, 'TRACT': 'T1'},
+            {'COUNTY': 'ALPHA', 'ACRES': 100, 'TRACT': 'T1'},
         ])
         self.doc2 = _create_doc('doc2.pdf', [
-            {'COUNTY': 'TULSA', 'ACRES': 200, 'TRACT': 'T2'},
+            {'COUNTY': 'BETA', 'ACRES': 200, 'TRACT': 'T2'},
         ])
         self.doc3 = _create_doc('doc3.pdf', [
-            {'COUNTY': 'CREEK', 'ACRES': 50, 'TRACT': 'T3'},
+            {'COUNTY': 'GAMMA', 'ACRES': 50, 'TRACT': 'T3'},
         ])
         self.qs = Item.objects.all()
         self.fields = _json_fields()
@@ -257,41 +257,41 @@ class JsonArrayNumberFilterTest(TestCase):
 class JsonArrayCombinedFilterTest(TestCase):
     def setUp(self):
         self.doc1 = _create_doc('doc1.pdf', [
-            {'COUNTY': 'MCINTOSH', 'ACRES': 100, 'TRACT': 'T1'},
+            {'COUNTY': 'ALPHA', 'ACRES': 100, 'TRACT': 'T1'},
         ])
         self.doc2 = _create_doc('doc2.pdf', [
-            {'COUNTY': 'TULSA', 'ACRES': 200, 'TRACT': 'T2'},
+            {'COUNTY': 'BETA', 'ACRES': 200, 'TRACT': 'T2'},
         ])
         self.doc3 = _create_doc('doc3.pdf', [
-            {'COUNTY': 'CREEK', 'ACRES': 300, 'TRACT': 'T3'},
+            {'COUNTY': 'GAMMA', 'ACRES': 300, 'TRACT': 'T3'},
         ])
         self.qs = Item.objects.all()
         self.fields = _json_fields()
 
-    def test_or_county_mcintosh_or_tulsa(self):
+    def test_or_county_alpha_or_beta(self):
         fm = {'COUNTY': {
             'operator': 'OR',
-            'condition1': {'filterType': 'text', 'type': 'equals', 'filter': 'MCINTOSH'},
-            'condition2': {'filterType': 'text', 'type': 'equals', 'filter': 'TULSA'},
+            'condition1': {'filterType': 'text', 'type': 'equals', 'filter': 'ALPHA'},
+            'condition2': {'filterType': 'text', 'type': 'equals', 'filter': 'BETA'},
         }}
         result = apply_filters(self.qs, fm, self.fields)
         self.assertEqual(result.count(), 2)
 
-    def test_and_county_contains_mc_and_starts_mc(self):
+    def test_and_county_contains_a_and_starts_a(self):
         fm = {'COUNTY': {
             'operator': 'AND',
-            'condition1': {'filterType': 'text', 'type': 'contains', 'filter': 'MC'},
-            'condition2': {'filterType': 'text', 'type': 'startsWith', 'filter': 'MC'},
+            'condition1': {'filterType': 'text', 'type': 'contains', 'filter': 'A'},
+            'condition2': {'filterType': 'text', 'type': 'startsWith', 'filter': 'A'},
         }}
         result = apply_filters(self.qs, fm, self.fields)
-        # Only MCINTOSH starts with and contains MC
+        # Only ALPHA starts with and contains MC
         self.assertEqual(result.count(), 1)
         self.assertEqual(result.first().name, 'doc1.pdf')
 
     def test_or_where_one_condition_matches_nothing(self):
         fm = {'COUNTY': {
             'operator': 'OR',
-            'condition1': {'filterType': 'text', 'type': 'equals', 'filter': 'MCINTOSH'},
+            'condition1': {'filterType': 'text', 'type': 'equals', 'filter': 'ALPHA'},
             'condition2': {'filterType': 'text', 'type': 'equals', 'filter': 'NONEXISTENT'},
         }}
         result = apply_filters(self.qs, fm, self.fields)
@@ -300,8 +300,8 @@ class JsonArrayCombinedFilterTest(TestCase):
     def test_and_where_conditions_conflict(self):
         fm = {'COUNTY': {
             'operator': 'AND',
-            'condition1': {'filterType': 'text', 'type': 'equals', 'filter': 'MCINTOSH'},
-            'condition2': {'filterType': 'text', 'type': 'equals', 'filter': 'TULSA'},
+            'condition1': {'filterType': 'text', 'type': 'equals', 'filter': 'ALPHA'},
+            'condition2': {'filterType': 'text', 'type': 'equals', 'filter': 'BETA'},
         }}
         result = apply_filters(self.qs, fm, self.fields)
         self.assertEqual(result.count(), 0)
@@ -314,21 +314,21 @@ class JsonArrayCombinedFilterTest(TestCase):
 class JsonArrayMultiColumnTest(TestCase):
     def setUp(self):
         self.doc1 = _create_doc('doc1.pdf', [
-            {'COUNTY': 'MCINTOSH', 'ACRES': 100, 'TRACT': 'T1'},
+            {'COUNTY': 'ALPHA', 'ACRES': 100, 'TRACT': 'T1'},
         ], status='COMPLETED')
         self.doc2 = _create_doc('doc2.pdf', [
-            {'COUNTY': 'MCINTOSH', 'ACRES': 200, 'TRACT': 'T2'},
+            {'COUNTY': 'ALPHA', 'ACRES': 200, 'TRACT': 'T2'},
         ], status='PENDING')
         self.doc3 = _create_doc('doc3.pdf', [
-            {'COUNTY': 'TULSA', 'ACRES': 50, 'TRACT': 'T3'},
+            {'COUNTY': 'BETA', 'ACRES': 50, 'TRACT': 'T3'},
         ], status='COMPLETED')
         self.qs = Item.objects.all()
         self.fields = _json_fields()
 
     def test_json_county_plus_status_filter(self):
-        """Filter COUNTY=MCINTOSH AND status=COMPLETED => doc1 only."""
+        """Filter COUNTY=ALPHA AND status=COMPLETED => doc1 only."""
         fm = {
-            'COUNTY': {'filterType': 'set', 'values': ['MCINTOSH']},
+            'COUNTY': {'filterType': 'set', 'values': ['ALPHA']},
             'status': {'filterType': 'set', 'values': ['COMPLETED']},
         }
         result = apply_filters(self.qs, fm, self.fields)
@@ -336,9 +336,9 @@ class JsonArrayMultiColumnTest(TestCase):
         self.assertEqual(result.first().name, 'doc1.pdf')
 
     def test_two_json_array_fields(self):
-        """Filter COUNTY=MCINTOSH AND ACRES > 150 => doc2 only."""
+        """Filter COUNTY=ALPHA AND ACRES > 150 => doc2 only."""
         fm = {
-            'COUNTY': {'filterType': 'set', 'values': ['MCINTOSH']},
+            'COUNTY': {'filterType': 'set', 'values': ['ALPHA']},
             'ACRES': {'filterType': 'number', 'type': 'greaterThan', 'filter': 150},
         }
         result = apply_filters(self.qs, fm, self.fields)
@@ -346,9 +346,9 @@ class JsonArrayMultiColumnTest(TestCase):
         self.assertEqual(result.first().name, 'doc2.pdf')
 
     def test_json_plus_status_no_overlap(self):
-        """Filter COUNTY=TULSA AND status=PENDING => no match."""
+        """Filter COUNTY=BETA AND status=PENDING => no match."""
         fm = {
-            'COUNTY': {'filterType': 'set', 'values': ['TULSA']},
+            'COUNTY': {'filterType': 'set', 'values': ['BETA']},
             'status': {'filterType': 'set', 'values': ['PENDING']},
         }
         result = apply_filters(self.qs, fm, self.fields)
@@ -363,7 +363,7 @@ class JsonArrayEdgeCaseTest(TestCase):
     def setUp(self):
         # Doc with normal items
         self.doc_normal = _create_doc('normal.pdf', [
-            {'COUNTY': 'MCINTOSH', 'ACRES': 100, 'TRACT': 'T1'},
+            {'COUNTY': 'ALPHA', 'ACRES': 100, 'TRACT': 'T1'},
         ])
         # Doc with empty items array
         self.doc_empty = _create_doc('empty_items.pdf', [])
@@ -377,13 +377,13 @@ class JsonArrayEdgeCaseTest(TestCase):
         self.fields = _json_fields()
 
     def test_doc_with_empty_items_excluded_from_set_filter(self):
-        fm = {'COUNTY': {'filterType': 'set', 'values': ['MCINTOSH']}}
+        fm = {'COUNTY': {'filterType': 'set', 'values': ['ALPHA']}}
         result = apply_filters(self.qs, fm, self.fields)
         self.assertEqual(result.count(), 1)
         self.assertEqual(result.first().name, 'normal.pdf')
 
     def test_doc_with_no_items_key_excluded_from_text_filter(self):
-        fm = {'COUNTY': {'filterType': 'text', 'type': 'contains', 'filter': 'MC'}}
+        fm = {'COUNTY': {'filterType': 'text', 'type': 'contains', 'filter': 'PH'}}
         result = apply_filters(self.qs, fm, self.fields)
         self.assertEqual(result.count(), 1)
         self.assertEqual(result.first().name, 'normal.pdf')
@@ -410,15 +410,15 @@ class JsonArrayDocWithMultipleItemsTest(TestCase):
 
     def setUp(self):
         self.doc = _create_doc('multi.pdf', [
-            {'COUNTY': 'MCINTOSH', 'ACRES': 50, 'TRACT': 'T1'},
-            {'COUNTY': 'TULSA', 'ACRES': 200, 'TRACT': 'T2'},
-            {'COUNTY': 'CREEK', 'ACRES': 100, 'TRACT': 'T3'},
+            {'COUNTY': 'ALPHA', 'ACRES': 50, 'TRACT': 'T1'},
+            {'COUNTY': 'BETA', 'ACRES': 200, 'TRACT': 'T2'},
+            {'COUNTY': 'GAMMA', 'ACRES': 100, 'TRACT': 'T3'},
         ])
         self.qs = Item.objects.all()
         self.fields = _json_fields()
 
     def test_set_matches_any_item(self):
-        fm = {'COUNTY': {'filterType': 'set', 'values': ['TULSA']}}
+        fm = {'COUNTY': {'filterType': 'set', 'values': ['BETA']}}
         result = apply_filters(self.qs, fm, self.fields)
         self.assertEqual(result.count(), 1)
 
@@ -429,6 +429,6 @@ class JsonArrayDocWithMultipleItemsTest(TestCase):
 
     def test_distinct_result_no_duplicates(self):
         """Even if multiple items match, the doc should appear only once."""
-        fm = {'COUNTY': {'filterType': 'set', 'values': ['MCINTOSH', 'TULSA', 'CREEK']}}
+        fm = {'COUNTY': {'filterType': 'set', 'values': ['ALPHA', 'BETA', 'GAMMA']}}
         result = apply_filters(self.qs, fm, self.fields)
         self.assertEqual(result.count(), 1)

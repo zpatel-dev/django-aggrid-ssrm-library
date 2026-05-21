@@ -22,22 +22,23 @@ class SSRMView(View):
 
     Example::
 
-        class SaleSSRMView(SSRMView):
+        class MyModelSSRMView(SSRMView):
             def get_queryset(self, request):
-                return Sale.objects.all()
+                return MyModel.objects.all()
 
             def get_config(self, request):
                 return SSRMConfig(
                     fields=[
-                        FieldDef('region', 'region', field_type='set'),
-                        FieldDef('quantity', 'quantity', field_type='number'),
+                        FieldDef('name', 'name', field_type='text'),
+                        FieldDef('category', 'category', field_type='set'),
+                        FieldDef('amount', 'amount', field_type='number'),
                     ],
-                    search_fields=['region', 'product'],
+                    search_fields=['name', 'category'],
                 )
 
     Wire up with::
 
-        path('sales/ssrm/', SaleSSRMView.as_view(), name='sales-ssrm'),
+        path('my-model/ssrm/', MyModelSSRMView.as_view(), name='my-model-ssrm'),
     """
 
     def get_queryset(self, request: HttpRequest):
@@ -67,7 +68,7 @@ class SSRMColumnValuesView(View):
     as ``SSRMView``.  Reads the column name from the ``?column=`` query
     parameter and an optional ``?limit=`` (default 500).
 
-    Example URL: ``GET /sales/column-values/?column=region&limit=100``
+    Example URL: ``GET /my-model/column-values/?column=category&limit=100``
     """
 
     def get_queryset(self, request: HttpRequest):

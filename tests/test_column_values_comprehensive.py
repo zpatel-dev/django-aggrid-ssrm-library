@@ -409,15 +409,15 @@ class SpecialCharsWithJsonArrayConfigTest(TestCase):
         ItemData.objects.create(
             item=doc,
             payload={'items': [
-                {'Well Name (API)': 'W1'},
-                {'Well Name (API)': 'W2'},
+                {'Col With (Spaces)': 'W1'},
+                {'Col With (Spaces)': 'W2'},
             ]},
         )
         self.qs = Item.objects.all().select_related('data')
         self.fields_dict = {
-            'Well Name (API)': FieldDef(
-                'Well Name (API)',
-                'data__extracted_data__Well Name (API)',
+            'Col With (Spaces)': FieldDef(
+                'Col With (Spaces)',
+                'data__payload__Col With (Spaces)',
                 is_json=True,
                 json_array_config=JSON_ARRAY_CONFIG,
             ),
@@ -425,7 +425,7 @@ class SpecialCharsWithJsonArrayConfigTest(TestCase):
 
     def test_special_chars_column_with_json_array_config(self):
         result = get_distinct_values(
-            self.qs, 'Well Name (API)', self.fields_dict,
+            self.qs, 'Col With (Spaces)', self.fields_dict,
         )
         self.assertEqual(result, ['W1', 'W2'])
 

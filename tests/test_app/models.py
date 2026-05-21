@@ -1,9 +1,9 @@
 """
 Minimal models used by the test suite.
 
-These mirror the shape of the source project's Document / DocumentData
-pair (a main model + a 1:1 related model with a JSONField), with generic
-names so the tests document general-purpose use of the library.
+A main model (``Item``) plus a 1:1 related model with a ``JSONField``
+(``ItemData``) — the same shape the SSRM engine is most often used
+against. Field names are intentionally generic.
 """
 from django.db import models
 

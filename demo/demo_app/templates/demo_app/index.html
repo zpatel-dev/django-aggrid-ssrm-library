@@ -22,7 +22,13 @@
 <body>
 
 <h1>django-aggrid-ssrm — demo</h1>
-<div class="subtitle">Sales records served via AG Grid Server-Side Row Model. Try filtering, sorting, and dragging a column into the Row Groups panel.</div>
+<div class="subtitle">
+  120 years of Olympic history &mdash; 271,116 athlete-event records, Athens 1896 to Rio 2016 &mdash;
+  served via AG Grid Server-Side Row Model.
+  Dataset from <a href="https://github.com/rfordatascience/tidytuesday/tree/main/data/2024/2024-08-06"
+  target="_blank" rel="noopener">TidyTuesday 2024-08-06</a>, originally compiled by Randi H. Griffin on Kaggle.
+  Try filtering by <em>medal</em>, sorting by <em>year</em>, or dragging <em>sport</em> / <em>noc</em> into the Row Groups panel.
+</div>
 
 <div class="warn">
   <strong>License notice:</strong> AG Grid SSRM is an <em>AG Grid Enterprise</em> feature.
@@ -32,7 +38,7 @@
 </div>
 
 <div class="toolbar">
-  <input id="searchBox" type="text" placeholder="Free-text search (product, sales rep, region)...">
+  <input id="searchBox" type="text" placeholder="Search athlete, team, sport, or event...">
 </div>
 
 <div id="myGrid" class="ag-theme-quartz"></div>

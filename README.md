@@ -50,36 +50,37 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from aggrid_ssrm import FieldDef, SSRMConfig, SSRMRequest, process_ssrm_request
-from .models import Sale
+from .models import AthleteEvent
 
 CONFIG = SSRMConfig(
     fields=[
-        FieldDef('region',  'region',  field_type='set'),
-        FieldDef('product', 'product', field_type='text'),
-        FieldDef('quantity','quantity',field_type='number'),
-        FieldDef('sold_at', 'sold_at', field_type='date'),
+        FieldDef('name',   'name',   field_type='text'),
+        FieldDef('noc',    'noc',    field_type='set'),     # country code
+        FieldDef('year',   'year',   field_type='number'),
+        FieldDef('sport',  'sport',  field_type='set'),
+        FieldDef('medal',  'medal',  field_type='set'),
     ],
-    default_sort=['-sold_at'],
-    search_fields=['product', 'region'],
+    default_sort=['-year', 'name'],
+    search_fields=['name', 'team', 'sport', 'event'],
 )
 
 @csrf_exempt
-def sales_ssrm(request):
+def athletes_ssrm(request):
     body = json.loads(request.body or b'{}')
     req = SSRMRequest.from_body(body)
-    result = process_ssrm_request(CONFIG, req, Sale.objects.all())
+    result = process_ssrm_request(CONFIG, req, AthleteEvent.objects.all())
     return JsonResponse(result)   # {"rowData": [...], "rowCount": N}
 ```
 
 ```python
 # urls.py
 urlpatterns = [
-    path('sales/ssrm/', sales_ssrm),
+    path('athletes/ssrm/', athletes_ssrm),
 ]
 ```
 
-Wire AG Grid's `ServerSideDatasource` to `POST /sales/ssrm/` and you're done.
-A full runnable example lives in [`demo/`](demo/).
+Wire AG Grid's `ServerSideDatasource` to `POST /athletes/ssrm/` and you're done.
+A full runnable example with this exact model lives in [`demo/`](demo/).
 
 ## Status / feature coverage
 
@@ -192,34 +193,35 @@ If you'd rather not write the JSON-decoding boilerplate yourself:
 ```python
 from aggrid_ssrm.views import SSRMView, SSRMColumnValuesView
 
-class SaleSSRMView(SSRMView):
+class AthleteSSRMView(SSRMView):
     def get_queryset(self, request):
-        return Sale.objects.all()
+        return AthleteEvent.objects.all()
     def get_config(self, request):
         return CONFIG
 
-class SaleColumnValuesView(SSRMColumnValuesView):
+class AthleteColumnValuesView(SSRMColumnValuesView):
     def get_queryset(self, request):
-        return Sale.objects.all()
+        return AthleteEvent.objects.all()
     def get_config(self, request):
         return CONFIG
 ```
 
 ## Demo
 
-A runnable Django project with a `Sale` model, ~5000 seeded rows, and a
-working AG Grid frontend lives in [`demo/`](demo/):
+A runnable Django project with an `AthleteEvent` model and the public
+[120 Years of Olympic History dataset](https://github.com/rfordatascience/tidytuesday/tree/main/data/2024/2024-08-06)
+(271,116 rows, Athens 1896 – Rio 2016) lives in [`demo/`](demo/):
 
 ```powershell
 uv sync --extra demo
 uv run python demo/manage.py migrate
-uv run python demo/manage.py seed_demo
+uv run python demo/manage.py seed_demo            # all 271k rows; use --limit N for a smaller slice
 uv run python demo/manage.py runserver
 ```
 
 Open <http://127.0.0.1:8000/>. AG Grid Enterprise loads from a CDN; expect
 the trial watermark unless you set `AG_GRID_LICENSE_KEY` in the
-environment.
+environment. See [`demo/README.md`](demo/README.md) for the full walkthrough.
 
 ## Development
 

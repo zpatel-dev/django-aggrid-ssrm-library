@@ -324,7 +324,7 @@ class Bug7_DefaultRowBuilderMissingRelation(TestCase):
 class Bug8_ArrayNestedJSONFieldsInvisible(TestCase):
     """
     When payload uses {"items": [{col: val}, ...]} structure,
-    the ORM path data__extracted_data__col returns None because the
+    the ORM path data__payload__col returns None because the
     value is inside the array, not at the top level.
 
     column_values and grouping must use value_getter to reach into
@@ -332,7 +332,7 @@ class Bug8_ArrayNestedJSONFieldsInvisible(TestCase):
     """
 
     def setUp(self):
-        # Doc 1: 2 tracts in MCINTOSH county
+        # Doc 1: 2 tracts in ALPHA county
         doc1 = Item.objects.create(
             name='order1.pdf',
             status='COMPLETED', source='/tmp/order1.pdf',
@@ -340,11 +340,11 @@ class Bug8_ArrayNestedJSONFieldsInvisible(TestCase):
         ItemData.objects.create(
             item=doc1,
             payload={'items': [
-                {'COUNTY': 'MCINTOSH', 'STATE': 'OK'},
-                {'COUNTY': 'MCINTOSH', 'STATE': 'OK'},
+                {'COUNTY': 'ALPHA', 'STATE': 'OK'},
+                {'COUNTY': 'ALPHA', 'STATE': 'OK'},
             ]},
         )
-        # Doc 2: 1 tract in TULSA county
+        # Doc 2: 1 tract in BETA county
         doc2 = Item.objects.create(
             name='order2.pdf',
             status='COMPLETED', source='/tmp/order2.pdf',
@@ -352,7 +352,7 @@ class Bug8_ArrayNestedJSONFieldsInvisible(TestCase):
         ItemData.objects.create(
             item=doc2,
             payload={'items': [
-                {'COUNTY': 'TULSA', 'STATE': 'OK'},
+                {'COUNTY': 'BETA', 'STATE': 'OK'},
             ]},
         )
 
@@ -386,11 +386,11 @@ class Bug8_ArrayNestedJSONFieldsInvisible(TestCase):
         self.fields_dict = {fd.col_id: fd for fd in self.field_defs}
 
     def test_distinct_values_finds_array_nested_values(self):
-        """Set Filter dropdown should show MCINTOSH and TULSA."""
+        """Set Filter dropdown should show ALPHA and BETA."""
         from aggrid_ssrm.column_values import get_distinct_values
         qs = Item.objects.all().select_related('data')
         values = get_distinct_values(qs, 'COUNTY', self.fields_dict)
-        self.assertEqual(sorted(values), ['MCINTOSH', 'TULSA'])
+        self.assertEqual(sorted(values), ['ALPHA', 'BETA'])
 
     def test_grouping_sees_array_nested_values(self):
         """Grouping by COUNTY should show 2 groups, not 1 empty group."""
@@ -406,10 +406,10 @@ class Bug8_ArrayNestedJSONFieldsInvisible(TestCase):
         )
         self.assertEqual(result['rowCount'], 2)
         counties = {r['COUNTY'] for r in result['rowData']}
-        self.assertEqual(counties, {'MCINTOSH', 'TULSA'})
+        self.assertEqual(counties, {'ALPHA', 'BETA'})
 
     def test_grouping_counts_items_not_documents(self):
-        """MCINTOSH has 2 items (across 1 doc), TULSA has 1 item."""
+        """ALPHA has 2 items (across 1 doc), BETA has 1 item."""
         req = SSRMRequest(
             row_group_cols=[{'field': 'COUNTY', 'colId': 'COUNTY'}],
             group_keys=[],
@@ -421,5 +421,5 @@ class Bug8_ArrayNestedJSONFieldsInvisible(TestCase):
             _row_builder, self.field_defs, ['-pk'],
         )
         counts = {r['COUNTY']: r['childCount'] for r in result['rowData']}
-        self.assertEqual(counts['MCINTOSH'], 2)
-        self.assertEqual(counts['TULSA'], 1)
+        self.assertEqual(counts['ALPHA'], 2)
+        self.assertEqual(counts['BETA'], 1)

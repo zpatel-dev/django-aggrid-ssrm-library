@@ -39,7 +39,7 @@ def _vg(col):
 # ---------------------------------------------------------------------------
 
 STATES = ['TX', 'CA', 'OK']
-COUNTIES = ['Travis', 'Harris', 'Los Angeles', 'Tulsa', 'Dallas']
+COUNTIES = ['Travis', 'Harris', 'Los Angeles', 'Maricopa', 'Dallas']
 
 
 def _build_fields():
@@ -65,7 +65,7 @@ def _build_fields_dict(field_defs):
 class _GroupingTestBase(TestCase):
     """
     Base class that creates a project with 20 documents:
-    COMPLETED x8, PENDING x6, FAILED x4, CONVERTING x2.
+    COMPLETED x8, PENDING x6, FAILED x4, PROCESSING x2.
     Each doc has payload with state, amount, county.
     """
 
@@ -74,7 +74,7 @@ class _GroupingTestBase(TestCase):
             ['COMPLETED'] * 8
             + ['PENDING'] * 6
             + ['FAILED'] * 4
-            + ['CONVERTING'] * 2
+            + ['PROCESSING'] * 2
         )
         for i, status in enumerate(statuses):
             doc = Item.objects.create(
@@ -167,12 +167,12 @@ class DirectFieldGroupChildCountTest(_GroupingTestBase):
         counts = {r['status']: r['childCount'] for r in result['rowData']}
         self.assertEqual(counts['FAILED'], 4)
 
-    def test_converting_child_count_is_2(self):
+    def test_processing_child_count_is_2(self):
         result = self._grouped(
             [{'field': 'status', 'colId': 'status'}], [],
         )
         counts = {r['status']: r['childCount'] for r in result['rowData']}
-        self.assertEqual(counts['CONVERTING'], 2)
+        self.assertEqual(counts['PROCESSING'], 2)
 
 
 class DirectFieldGroupRowShapeTest(_GroupingTestBase):
@@ -380,7 +380,7 @@ class GroupWithSetFilterTest(_GroupingTestBase):
         })
         # TX docs at indices 0,3,6,9,12,15,18
         # statuses: COMPLETED(0,3,6), PENDING(9,12), FAILED(15,18) => 3 groups
-        # (no CONVERTING among TX docs)
+        # (no PROCESSING among TX docs)
         total_children = sum(r['childCount'] for r in result['rowData'])
         self.assertEqual(total_children, 7)
 
@@ -515,7 +515,7 @@ class GroupAllUniqueValuesTest(TestCase):
         for i in range(5):
             doc = Item.objects.create(
                 name=f'file{i}.pdf',
-                status=['COMPLETED', 'PENDING', 'FAILED', 'CONVERTING', 'EXTRACTION_FAILED'][i],
+                status=['COMPLETED', 'PENDING', 'FAILED', 'PROCESSING', 'PROCESSING_FAILED'][i],
                 source=f'/tmp/file{i}.pdf',
             )
             ItemData.objects.create(

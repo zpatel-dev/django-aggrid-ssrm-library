@@ -70,7 +70,6 @@ dev = [
 [package.dev-dependencies]
 dev = [
     { name = "build" },
-    { name = "faker" },
     { name = "pytest" },
     { name = "pytest-django" },
     { name = "ruff" },
@@ -90,7 +89,6 @@ provides-extras = ["dev", "demo"]
 [package.metadata.requires-dev]
 dev = [
     { name = "build", specifier = ">=1.2" },
-    { name = "faker", specifier = ">=25.0" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-django", specifier = ">=4.8" },
     { name = "ruff", specifier = ">=0.6" },
